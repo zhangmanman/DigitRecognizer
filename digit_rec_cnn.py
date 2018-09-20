@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import mnist as mn
 from PIL import Image, ImageFilter
+import cv2
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -125,20 +126,13 @@ def test():
         submissions.to_csv("DigitRecognizer2.csv", index=False, header=True)
 
 def resize_img(file_name):
-    image_raw_data = tf.gfile.FastGFile(file_name, 'rb').read()
-
-    with tf.Session() as sess:
-        # 将jpg图像转化为三维矩阵，若为png格式，可使用tf.image.decode_png
-        img_data = tf.image.decode_png(image_raw_data)
-        img_data = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
-
-        # 通过tf.image.resize_images调整图像大小，size中为调整后的格式，method为调整图像大小的算法
-        resized = tf.image.resize_images(img_data, size=[28, 28], method=0)
-
-        resized = tf.reshape(resized, [-1, 28*28])
-        # 输出调整后图像的大小，深度没有设置，所以是？
-        print(resized.get_shape())
-        return resized
+    image = cv2.imread(file_name)
+    res = cv2.resize(image, (28, 28), interpolation=cv2.INTER_CUBIC)
+    res  = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
+    cv2.imshow("Image", res)
+    cv2.waitKey(0)
+    res = np.reshape(res, [-1, 28*28])
+    return res
 
 def recognize(file_name):
     saver = tf.train.Saver()
@@ -147,8 +141,7 @@ def recognize(file_name):
         save_model = tf.train.latest_checkpoint('.//model')
         saver.restore(sess, save_model)
         prediction = tf.argmax(y_conv, 1)
-        a = result.eval(session = sess)
-        predict = prediction.eval(feed_dict={x: a, keep_prob: 1.0}, session=sess)
+        predict = prediction.eval(feed_dict={x: result, keep_prob: 1.0}, session=sess)
 
         print('recognize result:')
         print(predict[0])
@@ -156,6 +149,5 @@ def recognize(file_name):
 if __name__ == '__main__':
     # train(100)
     # test()
-    # resize_img('input/test/test3.png')
     recognize('input/test/test4.png')
 
