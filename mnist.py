@@ -29,6 +29,20 @@ def extract_images_and_labels(dataset, validation = False):
 def extract_images(dataset):
     return dataset.reshape(-1, 28*28)
 
+
+def loadData():
+    train_data_file = 'input/all/train.csv'
+    test_data_file = 'input/all/test.csv'
+
+    train_data = pd.read_csv(train_data_file).as_matrix().astype(np.uint8)
+    test_data = pd.read_csv(test_data_file).as_matrix().astype(np.uint8)
+
+    tf.random_shuffle(train_data)
+
+    train_images, train_labels, val_images, val_labels = extract_images_and_labels(train_data, validation=True)
+    test_images = extract_images(test_data)
+
+
 train_data_file = 'input/all/train.csv'
 test_data_file = 'input/all/test.csv'
 
@@ -39,8 +53,3 @@ tf.random_shuffle(train_data)
 
 train_images, train_labels, val_images, val_labels = extract_images_and_labels(train_data, validation=True)
 test_images = extract_images(test_data)
-
-
-
-
-
