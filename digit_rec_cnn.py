@@ -132,31 +132,74 @@ def test():
                                     "Label": y_test})
         submissions.to_csv("DigitRecognizer5.csv", index=False, header=True)
 
-def resize_img(file_name):
-    image = cv2.imread(file_name)
-    res = cv2.resize(image, (28, 28), interpolation=cv2.INTER_CUBIC)
-    res  = cv2.cvtColor(res,cv2.COLOR_BGR2GRAY)
-    # cv2.imshow("Image", res)
-    # cv2.waitKey(0)
-    res = np.reshape(res, [-1, 28*28])
-    return res
+def show_img():
+    # test_images = mn.loadTestData()
+    train_images, _, _, _ = mn.loadTrainData()
+    im = train_images[40000]
+    im = im.reshape(28,28)
+    cv2.imshow('out', im)
+    cv2.waitKey(0)
 
 def resize_img2(file_name):
+
     im = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE).astype(np.float32)
     im = cv2.resize(im, (28, 28), interpolation=cv2.INTER_CUBIC)
     # 图片预处理
     # img_gray = cv2.cvtColor(im , cv2.COLOR_BGR2GRAY).astype(np.float32)
     # 数据从0~255转为-0.5~0.5
     # img_gray = (im - (255 / 2.0)) / 255
-    # cv2.imshow('out',img_gray)
+    # cv2.imshow('out',im)
     # cv2.waitKey(0)
     img_gray = im / 255.0
+
+    # (thresh, gray) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     x_img = np.reshape(img_gray, [-1, 784])
     return x_img
 
+
+def imageprepare(argv):
+    """
+    This function returns the pixel values.
+    The imput is a png file location.
+    """
+    im = Image.open(argv).convert('L')
+    width = float(im.size[0])
+    height = float(im.size[1])
+    newImage = Image.new('L', (28, 28), (255))  # creates white canvas of 28x28 pixels
+
+    if width > height:  # check which dimension is bigger
+        # Width is bigger. Width becomes 20 pixels.
+        nheight = int(round((20.0 / width * height), 0))  # resize height according to ratio width
+        if (nheight == 0):  # rare case but minimum is 1 pixel
+            nheight = 1
+        # resize and sharpen
+        img = im.resize((20, nheight), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wtop = int(round(((28 - nheight) / 2), 0))  # caculate horizontal pozition
+        newImage.paste(img, (4, wtop))  # paste resized image on white canvas
+    else:
+        # Height is bigger. Heigth becomes 20 pixels.
+        nwidth = int(round((20.0 / height * width), 0))  # resize width according to ratio height
+        if (nwidth == 0):  # rare case but minimum is 1 pixel
+            nwidth = 1
+            # resize and sharpen
+        img = im.resize((nwidth, 20), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wleft = int(round(((28 - nwidth) / 2), 0))  # caculate vertical pozition
+        newImage.paste(img, (wleft, 4))  # paste resized image on white canvas
+
+    # newImage.save("sample.png")
+
+    tv = list(newImage.getdata())  # get pixel values
+
+    # normalize pixels to 0 and 1. 0 is pure white, 1 is pure black.
+    tva = [x * 1.0 / 255.0 for x in tv]
+    # tva = [(255 - x) * 1.0 / 255.0 for x in tv]
+    tva = np.reshape(tva, [-1, 784])
+    return tva
+
 def recognize(file_name):
     saver = tf.train.Saver()
-    result = resize_img2(file_name)
+    result = imageprepare(file_name)
+    # result = resize_img2(file_name)
     with tf.Session() as sess:
         save_model = tf.train.latest_checkpoint('.//model')
         saver.restore(sess, save_model)
@@ -170,5 +213,5 @@ def recognize(file_name):
 if __name__ == '__main__':
     # train(100)
     # test()
-    recognize('input/test/test4_2.png')
-    # resize_img2('input/test/test6.png')
+    recognize('input/test/test1_2.png')
+    # show_img()
