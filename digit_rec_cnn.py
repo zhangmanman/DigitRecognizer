@@ -73,6 +73,8 @@ save_model = ".//model//mnist.ckpt"
 
 def train(epoch) :
     train_images, train_labels, val_images, val_labels = mn.loadTrainData()
+    train_images = train_images / 255.0
+    val_images = val_images / 255.0
     n_samples = train_images.shape[0]
     batch_size = 50
     max_batch = (int)(n_samples / batch_size)
@@ -118,6 +120,7 @@ def train(epoch) :
 
 def test():
     test_images = mn.loadTestData()
+    test_images = test_images / 255.0
     saver = tf.train.Saver()
     with tf.Session() as sess:
         save_model = tf.train.latest_checkpoint('.//model')
@@ -127,7 +130,7 @@ def test():
 
         submissions = pd.DataFrame({"ImageId": list(range(1, y_test.shape[0] + 1)),
                                     "Label": y_test})
-        submissions.to_csv("DigitRecognizer3.csv", index=False, header=True)
+        submissions.to_csv("DigitRecognizer5.csv", index=False, header=True)
 
 def resize_img(file_name):
     image = cv2.imread(file_name)
@@ -147,7 +150,7 @@ def resize_img2(file_name):
     # img_gray = (im - (255 / 2.0)) / 255
     # cv2.imshow('out',img_gray)
     # cv2.waitKey(0)
-    img_gray = (im - (255 / 2.0)) / 255
+    img_gray = im / 255.0
     x_img = np.reshape(img_gray, [-1, 784])
     return x_img
 
@@ -167,5 +170,5 @@ def recognize(file_name):
 if __name__ == '__main__':
     # train(100)
     # test()
-    recognize('input/test/test3.png')
+    recognize('input/test/test4_2.png')
     # resize_img2('input/test/test6.png')
