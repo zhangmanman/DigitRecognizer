@@ -151,6 +151,7 @@ def resize_img2(file_name):
     # cv2.imshow('out',im)
     # cv2.waitKey(0)
     img_gray = im / 255.0
+    # img_gray = 1.0 - (im / 255.0)
 
     # (thresh, gray) = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     x_img = np.reshape(img_gray, [-1, 784])
@@ -198,8 +199,8 @@ def imageprepare(argv):
 
 def recognize(file_name):
     saver = tf.train.Saver()
-    result = imageprepare(file_name)
-    # result = resize_img2(file_name)
+    # result = imageprepare(file_name)
+    result = resize_img2(file_name)
     with tf.Session() as sess:
         save_model = tf.train.latest_checkpoint('.//model')
         saver.restore(sess, save_model)
@@ -213,5 +214,5 @@ def recognize(file_name):
 if __name__ == '__main__':
     # train(100)
     # test()
-    recognize('input/test/test1_2.png')
+    recognize('input/test/test0.png')
     # show_img()
